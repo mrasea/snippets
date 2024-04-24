@@ -393,7 +393,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         popEdit = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
             10, 10, 200, 25, hWnd, NULL, GetModuleHandle(NULL), NULL);
         popListBox = CreateWindowEx(0, L"LISTBOX", L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY,
-            10, 40, 200, 150, hWnd, NULL, GetModuleHandle(NULL), NULL);
+            10, 40, 200, 250, hWnd, NULL, GetModuleHandle(NULL), NULL);
         break;
     case WM_COMMAND:
         if (LOWORD(wParam) == GetDlgCtrlID(popEdit)) {

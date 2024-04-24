@@ -4,7 +4,7 @@
 #include "resource.h"
 
 #define WIN_W 220
-#define WIN_H 400
+#define WIN_H 300
 
 
 struct SNPI {
