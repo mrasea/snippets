@@ -408,7 +408,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int wmId = LOWORD(wParam);
+    int lowWId = LOWORD(wParam);
+    int hiWId = HIWORD(wParam);
     switch (message)
     {
     case WM_CREATE://窗口创建时候的消息.
@@ -417,9 +418,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         popListBox = CreateWindowEx(0, L"LISTBOX", L"", WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY,
             10, 40, 200, 250, hWnd, NULL, GetModuleHandle(NULL), NULL);
         break;
+    case WM_ACTIVATE:
+        if (lowWId == WA_INACTIVE) {
+            // 窗口失去焦点时隐藏窗口
+            ShowWindow(hWnd, SW_HIDE);
+        }
+        break;
     case WM_COMMAND:
-        if (LOWORD(wParam) == GetDlgCtrlID(popEdit)) {
-            if (HIWORD(wParam) == EN_CHANGE) {
+        if (lowWId == GetDlgCtrlID(popEdit)) {
+            if (hiWId == EN_CHANGE) {
                 // 当编辑框内容改变时，根据内容过滤列表项
                 TCHAR szFilter[1024];
                 SendMessage(popEdit, WM_GETTEXT, sizeof(szFilter) / sizeof(TCHAR), (LPARAM)szFilter);
@@ -437,11 +444,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        if (LOWORD(wParam) == GetDlgCtrlID(popListBox) && HIWORD(wParam) == LBN_SELCHANGE) {
+        if (lowWId == GetDlgCtrlID(popListBox) && hiWId == LBN_SELCHANGE) {
             SendSelectValueToWindows();
         }
         // 分析菜单选择:
-        switch (wmId)
+        switch (lowWId)
         {
         case IDM_REFRESH_SNIPPETS:
             ParseCsvAndStore();
