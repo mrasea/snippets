@@ -53,8 +53,34 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
     KillTimer(NULL, g_nTimerID); // 停止定时器
     ShowWindow(hWnd, SW_HIDE);
 
-    SendMessage(hInFocus, WM_PASTE, 0, 0);
+    SetForegroundWindow(hForeWnd);
+    SetFocus(hInFocus);
+    //LRESULT rs = PostMessage(hForeWnd, WM_PASTE, 0, 0);
+    //OutputDebugPrintf(" >>> WM_PASTE: %d <<< ", rs);
 
+    // 按下Ctrl键
+    keybd_event(VK_CONTROL, 0, 0, 0);
+    // 按下V键
+    keybd_event(0x56, 0, 0, 0); // 0x56是V键的ASCII码
+    // 释放V键
+    keybd_event(0x56, 0, KEYEVENTF_KEYUP, 0);
+    // 释放Ctrl键
+    keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+
+    INPUT inputs[2] = {};
+    ZeroMemory(inputs, sizeof(inputs));
+    inputs[0].type = INPUT_KEYBOARD;
+    inputs[0].ki.wVk = VK_CONVERT;
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = 'V';
+    SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+
+    // 等待一会儿
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+    inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+    SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
     if (OpenClipboard(NULL)) {
         EmptyClipboard();
         CloseClipboard();
