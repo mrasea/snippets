@@ -2,6 +2,7 @@
 
 #include "framework.h"
 #include "resource.h"
+#pragma comment(lib, "Comctl32.lib") // Á´½Ó Comctl32.lib ¿âÎÄ¼þ
 
 #define WIN_W 220
 #define WIN_H 300
