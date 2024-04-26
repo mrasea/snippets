@@ -31,3 +31,4 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime);
 void HideWindowAndPaste(UINT uElapse);
 void OutputDebugPrintf(const char* strOutputString, ...);
 int SendSelectValueToWindows();
+void SendStrByKeyboard(const std::string& keys);

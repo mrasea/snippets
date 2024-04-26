@@ -6,7 +6,6 @@
 #include "basewin.h"
 
 #define MAX_LOADSTRING 100
-
 // 全局变量:
 HINSTANCE hInst;                                // 当前实例
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
@@ -24,7 +23,7 @@ UINT_PTR g_nTimerID = 0; // 定时器ID
 
 HWND popEdit;
 HWND popListBox;
-
+std::string inValue;
 
 void OutputDebugPrintf(const char* strOutputString, ...)
 {
@@ -55,31 +54,111 @@ VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) {
 
     //SetForegroundWindow(hForeWnd);
     //SetFocus(hInFocus);
+    SendStrByKeyboard(inValue);
+}
 
-    INPUT inputs[2] = {};
-    ZeroMemory(inputs, sizeof(inputs));
+// 发送组合键的函数
+void SendCombinationKey(char ch) {
+    INPUT inputs[4] = {};
+
+    // 按下 Shift 键
     inputs[0].type = INPUT_KEYBOARD;
-    inputs[0].ki.wVk = VK_CONTROL;
-    inputs[1].type = INPUT_KEYBOARD;
-    inputs[1].ki.wVk = 'V';
-    SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    inputs[0].ki.wVk = VK_SHIFT;
 
+    // 按下字符键
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = VkKeyScan(ch);
     // 等待一会儿
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    // 释放字符键
+    inputs[2].type = INPUT_KEYBOARD;
+    inputs[2].ki.wVk = VkKeyScan(ch);
+    inputs[2].ki.dwFlags = KEYEVENTF_KEYUP;
 
-    ZeroMemory(inputs, sizeof(inputs));
+    // 释放 Shift 键
+    inputs[3].type = INPUT_KEYBOARD;
+    inputs[3].ki.wVk = VK_SHIFT;
+    inputs[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    // 发送输入事件
+    SendInput(4, inputs, sizeof(INPUT));
+}
+
+// 发送普通键的函数
+void SendNormalKey(char ch) {
+    INPUT inputs[2] = {};
+
     inputs[0].type = INPUT_KEYBOARD;
-    inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
-    inputs[0].ki.wVk = 'V';
-    inputs[1].type = INPUT_KEYBOARD;
-    inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
-    inputs[1].ki.wVk = VK_CONTROL;
-    SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+    inputs[0].ki.dwFlags = 0;
+    inputs[0].ki.wVk = VkKeyScan(ch);
 
-    //清空粘贴板
-    if (OpenClipboard(NULL)) {
-        EmptyClipboard();
-        CloseClipboard();
+    inputs[1].type = INPUT_KEYBOARD;
+    inputs[1].ki.wVk = VkKeyScan(ch);
+    inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
+
+    SendInput(2, inputs, sizeof(INPUT));
+}
+void SendStrByKeyboard(const std::string& keys) {
+    OutputDebugPrintf(">> %s", keys.c_str());
+    for (wchar_t ch : keys) {
+        if (ch == 0) {
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        switch (ch) {
+        case L'~':
+        case L'!':
+        case L'@':
+        case L'#':
+        case L'$':
+        case L'%':
+        case L'^':
+        case L'&':
+        case L'*':
+        case L'(':
+        case L')':
+        case L'_':
+        case L'+':
+        case L'{':
+        case L'}':
+        case L'|':
+        case L':':
+        case L'"':
+        case L'<':
+        case L'>':
+        case L'?':
+        case L'A':
+        case L'B':
+        case L'C':
+        case L'D':
+        case L'E':
+        case L'F':
+        case L'G':
+        case L'H':
+        case L'I':
+        case L'J':
+        case L'K':
+        case L'L':
+        case L'M':
+        case L'N':
+        case L'O':
+        case L'P':
+        case L'Q':
+        case L'R':
+        case L'S':
+        case L'T':
+        case L'U':
+        case L'V':
+        case L'W':
+        case L'X':
+        case L'Y':
+        case L'Z':
+            SendCombinationKey(ch);
+            break;
+        default:
+            SendNormalKey(ch);
+            break;
+        }
     }
 }
 LPARAM StringToLPARAM(const std::string& str) {
@@ -171,25 +250,15 @@ int SendSelectValueToWindows()
         OutputDebugPrintf(" >>> hInFocus %d <<< ", hInFocus);
         if (tokens.size() >= 2)
         {
-            if (OpenClipboard(NULL)) {
-                EmptyClipboard();
-                HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE, 10);
-                if (hGlobal != NULL) {
-                    char* pText = (char*)GlobalLock(hGlobal);
-                    std::string s = tokens[1];
-                    strcpy_s(pText, s.length() + 1, s.c_str());
-                    GlobalUnlock(hGlobal);
-                    SetClipboardData(CF_TEXT, hGlobal);
-                }
-                CloseClipboard();
-            }
+            inValue = tokens[1];
             HideWindowAndPaste(100); // 延迟
             return 1;
         }
     }
     return 0;
-
 }
+
+
 // 键盘钩子处理函数
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
